@@ -1,4 +1,4 @@
-/* Arquivo gerado automaticamente pelo painel admin em 27/09/2026, 17:55:35. Não edite manualmente. */
+/* Arquivo gerado automaticamente pelo painel admin em 27/09/2026, 17:57:44. Não edite manualmente. */
 
 const loja = {
   "id": 1,
@@ -23,28 +23,19 @@ const loja = {
   "urgenciaTexto": "",
   "horarios": [
     {
-      "id": 1,
+      "id": 3,
       "dias": [
         1,
         2,
         3,
         4,
-        5
-      ],
-      "abre": "08:00",
-      "fecha": "18:00",
-      "texto": "Seg a Sex: 08:00 - 18:00",
-      "ordem": 0
-    },
-    {
-      "id": 2,
-      "dias": [
+        5,
         6
       ],
       "abre": "08:00",
-      "fecha": "12:00",
-      "texto": "Sáb: 08:00 - 12:00",
-      "ordem": 1
+      "fecha": "18:00",
+      "texto": "Segunda a sábado, com agendamento",
+      "ordem": 0
     }
   ]
 };
