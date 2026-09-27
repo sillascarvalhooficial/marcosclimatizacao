@@ -148,7 +148,7 @@ async function seedInicial() {
     VALUES (1, ?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?,?)`, [
     'Marquinhos Climatização', 'marquinhos-climatizacao', 'Instalação e manutenção de ar-condicionado', '',
     '5500000000000', '(00) 00000-0000', '(00) 0000-0000',
-    '@marquinhosclimatizacao', '', '#1E88E5', '#0D1B2A',
+    '@marquinhosclimatizacao', '', '#1E88E5', '#0B2545',
     'Atendimento residencial e comercial', '', '',
     'Sobre a Marquinhos Climatização', 'Trabalho técnico especializado em instalação, manutenção e higienização de ar-condicionado, com qualidade, transparência e garantia em cada serviço.'
   ]);
