@@ -1,4 +1,4 @@
-/* Arquivo gerado automaticamente pelo painel admin em 27/09/2026, 17:43:00. Não edite manualmente. */
+/* Arquivo gerado automaticamente pelo painel admin em 27/09/2026, 17:55:35. Não edite manualmente. */
 
 const loja = {
   "id": 1,
@@ -6,10 +6,10 @@ const loja = {
   "slug": "marcos-climatizacao-eletrica",
   "slogan": "Climatização e elétrica em geral",
   "logo": "https://res.cloudinary.com/sc1beurq/image/upload/v1790540175/marcos-climatizacao/logo.png",
-  "whatsapp": "5500000000000",
-  "whatsappExibicao": "(00) 00000-0000",
-  "telefoneExibicao": "(00) 0000-0000",
-  "instagram": "@marcosclimatizacao",
+  "whatsapp": "5544999806739",
+  "whatsappExibicao": "(44) 99980-6739",
+  "telefoneExibicao": "(44) 99980-6739",
+  "instagram": "@marcos_climatizacao022",
   "facebook": "",
   "corPrincipal": "#1E88E5",
   "corSecundaria": "#0B2545",
