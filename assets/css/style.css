@@ -67,7 +67,7 @@ a{color:inherit; text-decoration:none;}
 .topbar-redes a{width:26px; height:26px; border-radius:50%; background:var(--cor-secundaria); color:#fff; display:flex; align-items:center; justify-content:center;}
 
 /* ---------- B. HEADER ---------- */
-.site-header{background:var(--cor-secundaria); padding:8px 0; border-bottom:1px solid rgba(255,255,255,.08);}
+.site-header{background:var(--cor-secundaria); padding:16px 0; border-bottom:1px solid rgba(255,255,255,.08);}
 .header-inner{display:flex; align-items:center; justify-content:space-between; gap:16px;}
 .marca{display:flex; align-items:center; gap:12px; min-width:0;}
 .logo-badge{
