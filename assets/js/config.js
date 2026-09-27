@@ -1,11 +1,11 @@
-/* Arquivo gerado automaticamente pelo painel admin em 27/09/2026, 17:07:27. Não edite manualmente. */
+/* Arquivo gerado automaticamente pelo painel admin em 27/09/2026, 17:16:16. Não edite manualmente. */
 
 const loja = {
   "id": 1,
   "nome": "Marcos Climatização e Elétrica",
   "slug": "marcos-climatizacao-eletrica",
   "slogan": "Climatização e elétrica em geral",
-  "logo": "",
+  "logo": "https://res.cloudinary.com/sc1beurq/image/upload/v1790540175/marcos-climatizacao/logo.png",
   "whatsapp": "5500000000000",
   "whatsappExibicao": "(00) 00000-0000",
   "telefoneExibicao": "(00) 0000-0000",
