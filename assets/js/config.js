@@ -1,11 +1,11 @@
-/* Arquivo gerado automaticamente pelo painel admin em 27/09/2026, 15:35:12. Não edite manualmente. */
+/* Arquivo gerado automaticamente pelo painel admin em 27/09/2026, 15:46:42. Não edite manualmente. */
 
 const loja = {
   "id": 1,
   "nome": "Marquinhos Climatização",
   "slug": "marquinhos-climatizacao",
   "slogan": "Instalação e manutenção de ar-condicionado",
-  "logo": "https://res.cloudinary.com/sc1beurq/image/upload/v1790533987/marquinhos-climatizacao/logo.png",
+  "logo": "https://res.cloudinary.com/sc1beurq/image/upload/v1790534801/marquinhos-climatizacao/logo.png",
   "whatsapp": "5500000000000",
   "whatsappExibicao": "(00) 00000-0000",
   "telefoneExibicao": "(00) 0000-0000",
