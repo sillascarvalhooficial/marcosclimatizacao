@@ -11,7 +11,7 @@ const { createClient } = require('@libsql/client');
 const cloudinary = require('cloudinary').v2;
 
 const DATA_DIR = path.join(__dirname, 'data');
-const DB_FILE = path.join(DATA_DIR, 'marquinhos.sqlite');
+const DB_FILE = path.join(DATA_DIR, 'marcos.sqlite');
 const PROJECT_ROOT = path.join(__dirname, '..');
 const ASSETS_DIR = path.join(PROJECT_ROOT, 'assets');
 const ASSETS_JS_DIR = path.join(ASSETS_DIR, 'js');
@@ -113,6 +113,7 @@ async function criarSchema() {
     CREATE TABLE IF NOT EXISTS servicos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       nome TEXT NOT NULL, descricao TEXT, emoji TEXT NOT NULL DEFAULT '❄️',
+      categoria TEXT NOT NULL DEFAULT 'climatizacao',
       ativo INTEGER NOT NULL DEFAULT 1, ordem INTEGER NOT NULL
     );
     CREATE TABLE IF NOT EXISTS trabalhos (
@@ -151,11 +152,11 @@ async function seedInicial() {
   await dbRun(`INSERT INTO loja (id, nome, slug, slogan, logo, whatsapp, whatsappExibicao, telefoneExibicao,
     instagram, facebook, corPrincipal, corSecundaria, endereco, linkMapa, heroTexto, sobreTitulo, sobreTexto, fraseMuralVazio)
     VALUES (1, ?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?,?,?)`, [
-    'Marquinhos Climatização', 'marquinhos-climatizacao', 'Instalação e manutenção de ar-condicionado', '',
+    'Marcos Climatização e Elétrica', 'marcos-climatizacao-eletrica', 'Climatização e elétrica em geral', '',
     '5500000000000', '(00) 00000-0000', '(00) 0000-0000',
-    '@marquinhosclimatizacao', '', '#1E88E5', '#0B2545',
+    '@marcosclimatizacao', '', '#1E88E5', '#0B2545',
     'Atendimento residencial e comercial', '', '',
-    'Sobre a Marquinhos Climatização', 'Trabalho técnico especializado em instalação, manutenção e higienização de ar-condicionado, com qualidade, transparência e garantia em cada serviço.',
+    'Sobre a Marcos Climatização e Elétrica', 'Trabalho técnico especializado em instalação e manutenção de ar-condicionado e serviços elétricos residenciais e comerciais, com qualidade, transparência e garantia em cada serviço.',
     'Nenhum ar-condicionado usado disponível no momento... volte em breve!'
   ]);
 
@@ -169,15 +170,19 @@ async function seedInicial() {
   }
 
   const servicosSeed = [
-    ['Instalação', 'Instalação completa de ar-condicionado split, residencial ou comercial.', '❄️'],
-    ['Manutenção Preventiva', 'Revisão periódica pra evitar problemas e manter a eficiência do aparelho.', '🔧'],
-    ['Higienização', 'Limpeza completa que melhora a qualidade do ar e o desempenho do aparelho.', '🧼'],
-    ['Recarga de Gás', 'Recarga do gás refrigerante quando o aparelho perde a capacidade de gelar.', '🌡️'],
-    ['Conserto e Reparo', 'Diagnóstico e reparo de qualquer defeito no seu ar-condicionado.', '🛠️']
+    ['Instalação', 'Instalação completa de ar-condicionado split, residencial ou comercial.', '❄️', 'climatizacao'],
+    ['Manutenção Preventiva', 'Revisão periódica pra evitar problemas e manter a eficiência do aparelho.', '🔧', 'climatizacao'],
+    ['Higienização', 'Limpeza completa que melhora a qualidade do ar e o desempenho do aparelho.', '🧼', 'climatizacao'],
+    ['Recarga de Gás', 'Recarga do gás refrigerante quando o aparelho perde a capacidade de gelar.', '🌡️', 'climatizacao'],
+    ['Conserto e Reparo (Ar)', 'Diagnóstico e reparo de qualquer defeito no seu ar-condicionado.', '🛠️', 'climatizacao'],
+    ['Instalação Elétrica', 'Instalação elétrica residencial e comercial, do zero ou em reformas.', '⚡', 'eletrica'],
+    ['Manutenção e Reparo Elétrico', 'Diagnóstico e correção de problemas elétricos com segurança.', '🔌', 'eletrica'],
+    ['Quadro de Distribuição', 'Instalação e adequação de quadro de distribuição e padrão de entrada.', '🗄️', 'eletrica'],
+    ['Tomadas, Interruptores e Disjuntores', 'Instalação e troca de tomadas, interruptores e disjuntores.', '🔦', 'eletrica']
   ];
   for (let i = 0; i < servicosSeed.length; i++) {
     const s = servicosSeed[i];
-    await dbRun('INSERT INTO servicos (nome, descricao, emoji, ativo, ordem) VALUES (?,?,?,1,?)', [s[0], s[1], s[2], i]);
+    await dbRun('INSERT INTO servicos (nome, descricao, emoji, categoria, ativo, ordem) VALUES (?,?,?,?,1,?)', [s[0], s[1], s[2], s[3], i]);
   }
 }
 
@@ -320,7 +325,7 @@ app.post('/api/loja/logo', requireAuth, (req, res) => {
     if (!req.file) return res.status(400).json({ erro: 'Nenhum arquivo enviado.' });
     if (!CLOUDINARY_CONFIGURADO) return res.status(500).json({ erro: 'Upload de imagens não configurado no servidor (faltam as credenciais do Cloudinary).' });
     try {
-      const resultado = await uploadParaCloudinary(req.file.buffer, 'marquinhos-climatizacao/logo');
+      const resultado = await uploadParaCloudinary(req.file.buffer, 'marcos-climatizacao/logo');
       await salvarLoja({ logo: resultado.secure_url });
       await regenerarConfigJs();
       res.json({ ok: true, logo: resultado.secure_url });
@@ -361,10 +366,10 @@ app.delete('/api/horarios/:id', requireAuth, asyncHandler(async (req, res) => {
 /* ---------- serviços ---------- */
 app.get('/api/servicos', requireAuth, asyncHandler(async (req, res) => res.json(await lerServicos())));
 app.post('/api/servicos', requireAuth, asyncHandler(async (req, res) => {
-  const { nome, descricao, emoji } = req.body || {};
+  const { nome, descricao, emoji, categoria } = req.body || {};
   if (!nome || !nome.trim()) return res.status(400).json({ erro: 'Informe o nome do serviço.' });
   const maxRow = await dbGet('SELECT COALESCE(MAX(ordem), -1) AS m FROM servicos');
-  await dbRun('INSERT INTO servicos (nome, descricao, emoji, ativo, ordem) VALUES (?,?,?,1,?)', [nome.trim(), (descricao || '').trim(), (emoji || '❄️').trim(), maxRow.m + 1]);
+  await dbRun('INSERT INTO servicos (nome, descricao, emoji, categoria, ativo, ordem) VALUES (?,?,?,?,1,?)', [nome.trim(), (descricao || '').trim(), (emoji || '❄️').trim(), (categoria || 'climatizacao').trim(), maxRow.m + 1]);
   await regenerarServicosJs();
   res.json({ ok: true, servicos: await lerServicos() });
 }));
@@ -373,9 +378,10 @@ app.put('/api/servicos/:id', requireAuth, asyncHandler(async (req, res) => {
   const atual = await dbGet('SELECT * FROM servicos WHERE id = ?', [id]);
   if (!atual) return res.status(404).json({ erro: 'Serviço não encontrado.' });
   const c = req.body || {};
-  await dbRun('UPDATE servicos SET nome=?, descricao=?, emoji=?, ativo=? WHERE id=?', [
+  await dbRun('UPDATE servicos SET nome=?, descricao=?, emoji=?, categoria=?, ativo=? WHERE id=?', [
     c.nome != null ? c.nome : atual.nome, c.descricao != null ? c.descricao : atual.descricao,
-    c.emoji != null ? c.emoji : atual.emoji, c.ativo != null ? (c.ativo ? 1 : 0) : atual.ativo, id
+    c.emoji != null ? c.emoji : atual.emoji, c.categoria != null ? c.categoria : atual.categoria,
+    c.ativo != null ? (c.ativo ? 1 : 0) : atual.ativo, id
   ]);
   await regenerarServicosJs();
   res.json({ ok: true });
@@ -414,8 +420,8 @@ app.delete('/api/trabalhos/:id', requireAuth, asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const atual = await dbGet('SELECT * FROM trabalhos WHERE id = ?', [id]);
   if (!atual) return res.status(404).json({ erro: 'Item não encontrado.' });
-  await apagarImagemCloudinary(`marquinhos-climatizacao/trabalhos/tr-${id}-antes`);
-  await apagarImagemCloudinary(`marquinhos-climatizacao/trabalhos/tr-${id}-depois`);
+  await apagarImagemCloudinary(`marcos-climatizacao/trabalhos/tr-${id}-antes`);
+  await apagarImagemCloudinary(`marcos-climatizacao/trabalhos/tr-${id}-depois`);
   await dbRun('DELETE FROM trabalhos WHERE id = ?', [id]);
   await regenerarTrabalhosJs();
   res.json({ ok: true });
@@ -433,7 +439,7 @@ app.post('/api/trabalhos/:id/foto/:tipo', requireAuth, (req, res) => {
       const atual = await dbGet('SELECT * FROM trabalhos WHERE id = ?', [id]);
       if (!atual) return res.status(404).json({ erro: 'Item não encontrado.' });
       const coluna = tipo === 'antes' ? 'fotoAntes' : 'fotoDepois';
-      const resultado = await uploadParaCloudinary(req.file.buffer, `marquinhos-climatizacao/trabalhos/tr-${id}-${tipo}`);
+      const resultado = await uploadParaCloudinary(req.file.buffer, `marcos-climatizacao/trabalhos/tr-${id}-${tipo}`);
       await dbRun(`UPDATE trabalhos SET ${coluna} = ? WHERE id = ?`, [resultado.secure_url, id]);
       await regenerarTrabalhosJs();
       res.json({ ok: true, imagem: resultado.secure_url });
@@ -469,7 +475,7 @@ app.delete('/api/achados/:id', requireAuth, asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   const atual = await dbGet('SELECT * FROM achados WHERE id = ?', [id]);
   if (!atual) return res.status(404).json({ erro: 'Achado não encontrado.' });
-  await apagarImagemCloudinary(`marquinhos-climatizacao/achados/achado-${id}`);
+  await apagarImagemCloudinary(`marcos-climatizacao/achados/achado-${id}`);
   await dbRun('DELETE FROM achados WHERE id = ?', [id]);
   await regenerarAchadosJs();
   res.json({ ok: true });
@@ -483,7 +489,7 @@ app.post('/api/achados/:id/imagem', requireAuth, (req, res) => {
       const id = Number(req.params.id);
       const atual = await dbGet('SELECT * FROM achados WHERE id = ?', [id]);
       if (!atual) return res.status(404).json({ erro: 'Achado não encontrado.' });
-      const resultado = await uploadParaCloudinary(req.file.buffer, `marquinhos-climatizacao/achados/achado-${id}`);
+      const resultado = await uploadParaCloudinary(req.file.buffer, `marcos-climatizacao/achados/achado-${id}`);
       await dbRun('UPDATE achados SET imagem = ? WHERE id = ?', [resultado.secure_url, id]);
       await regenerarAchadosJs();
       res.json({ ok: true, imagem: resultado.secure_url });

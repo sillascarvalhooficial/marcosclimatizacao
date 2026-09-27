@@ -1,7 +1,7 @@
 {
-  "name": "marquinhos-climatizacao-admin-backend",
+  "name": "marcos-climatizacao-eletrica-admin-backend",
   "version": "1.0.0",
-  "description": "Painel administrativo do site do Marquinhos Climatização — libSQL/Turso para loja, serviços, trabalhos concluídos e agenda privada, fotos no Cloudinary",
+  "description": "Painel administrativo do site do Marcos Climatização e Elétrica — libSQL/Turso para loja, serviços, trabalhos concluídos e agenda privada, fotos no Cloudinary",
   "main": "server.js",
   "engines": {
     "node": ">=18.0.0"

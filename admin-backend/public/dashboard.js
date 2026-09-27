@@ -144,10 +144,14 @@ function renderServicos(){
       '<td><input type="text" class="campo-emoji" value="'+escapeHtml(s.emoji)+'" style="width:50px; text-align:center;" maxlength="4"></td>' +
       '<td><input type="text" class="campo-nome" value="'+escapeHtml(s.nome)+'"></td>' +
       '<td><input type="text" class="campo-descricao" value="'+escapeHtml(s.descricao||'')+'"></td>' +
+      '<td><select class="campo-categoria">' +
+        '<option value="climatizacao"'+(s.categoria==='climatizacao'?' selected':'')+'>Climatização</option>' +
+        '<option value="eletrica"'+(s.categoria==='eletrica'?' selected':'')+'>Elétrica</option>' +
+      '</select></td>' +
       '<td><label class="switch"><input type="checkbox" class="campo-ativo" '+(s.ativo?'checked':'')+'><span class="slider"></span></label></td>' +
       '<td class="acoes"><button class="icon-btn btn-salvar">💾</button><button class="icon-btn btn-remover">🗑️</button></td>' +
     '</tr>'
-  )).join('') || '<tr><td colspan="5" class="desc">Nenhum serviço cadastrado.</td></tr>';
+  )).join('') || '<tr><td colspan="6" class="desc">Nenhum serviço cadastrado.</td></tr>';
 }
 document.getElementById('corpoServicos').addEventListener('click', function(e){
   const tr = e.target.closest('tr'); if(!tr || !tr.dataset.id) return;
@@ -157,6 +161,7 @@ document.getElementById('corpoServicos').addEventListener('click', function(e){
       nome: tr.querySelector('.campo-nome').value.trim(),
       descricao: tr.querySelector('.campo-descricao').value.trim(),
       emoji: tr.querySelector('.campo-emoji').value.trim(),
+      categoria: tr.querySelector('.campo-categoria').value,
       ativo: tr.querySelector('.campo-ativo').checked
     }).then(()=>mostrarMensagem('Serviço salvo.')).catch(err=>mostrarMensagem(err.message,'erro'));
   }
@@ -172,7 +177,7 @@ document.getElementById('corpoServicos').addEventListener('change', function(e){
     .then(()=>mostrarMensagem('Serviço atualizado.')).catch(err=>mostrarMensagem(err.message,'erro'));
 });
 document.getElementById('btnNovoServico').addEventListener('click', async function(){
-  await api('POST', '/api/servicos', { nome: 'Novo serviço', descricao: '', emoji: '❄️' });
+  await api('POST', '/api/servicos', { nome: 'Novo serviço', descricao: '', emoji: '❄️', categoria: 'climatizacao' });
   await carregarServicos();
   mostrarMensagem('Serviço criado — edite e salve.');
 });

@@ -119,7 +119,9 @@ a{color:inherit; text-decoration:none;}
 .secao-titulo p{color:var(--muted); font-size:14px; margin-top:10px;}
 
 /* ---------- E. SERVIÇOS ---------- */
-.servicos-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px;}
+.servicos-grid{display:flex; flex-direction:column; gap:16px;}
+.servicos-subtitulo{font-size:15px; color:var(--cor-principal); text-transform:uppercase; letter-spacing:.04em; margin:8px 0 4px; text-align:left;}
+.servicos-grid-interno{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px;}
 .servico-card{
   background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg);
   padding:28px 24px; text-align:center; box-shadow:var(--shadow-sm);

@@ -1,4 +1,4 @@
 node_modules/
 .env
-data/marquinhos.sqlite
+data/marcos.sqlite
 *.log

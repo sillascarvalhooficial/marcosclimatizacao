@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MARQUINHOS CLIMATIZAÇÃO — lógica de renderização do site
+   MARCOS CLIMATIZAÇÃO E ELÉTRICA — lógica de renderização do site
    Lê os dados de config.js, servicos.js e trabalhos.js.
    Não deveria ser necessário mexer aqui só para trocar de cliente.
    ========================================================================== */
@@ -67,16 +67,35 @@ function renderHeader(){
   if(loja.heroTexto) document.getElementById('heroTexto').textContent = loja.heroTexto;
 }
 
-/* ---------- E. serviços ---------- */
-function renderServicos(){
-  const ativos = servicos.filter(s=>s.ativo).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
-  document.getElementById('servicosGrid').innerHTML = ativos.map(s=>(
+/* ---------- E. serviços (agrupados por categoria) ---------- */
+const SERVICO_CATEGORIA_LABEL = { climatizacao:'Climatização', eletrica:'Elétrica em Geral' };
+const SERVICO_CATEGORIA_ORDEM = ['climatizacao', 'eletrica'];
+
+function renderServicoCard(s){
+  return (
     '<div class="servico-card">'+
       '<div class="servico-icone">'+(s.emoji||'❄️')+'</div>'+
       '<h3>'+escapeHtml(s.nome)+'</h3>'+
       (s.descricao?'<p>'+escapeHtml(s.descricao)+'</p>':'')+
     '</div>'
-  )).join('') || '<p style="text-align:center; color:var(--muted);">Serviços em breve.</p>';
+  );
+}
+function renderServicos(){
+  const ativos = servicos.filter(s=>s.ativo).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+  if(ativos.length===0){
+    document.getElementById('servicosGrid').innerHTML = '<p style="text-align:center; color:var(--muted);">Serviços em breve.</p>';
+    return;
+  }
+  const grupos = {};
+  ativos.forEach(s=>{ const cat = s.categoria || 'outros'; (grupos[cat] = grupos[cat] || []).push(s); });
+  const chaves = Object.keys(grupos).sort((a,b)=>{
+    const ia = SERVICO_CATEGORIA_ORDEM.indexOf(a), ib = SERVICO_CATEGORIA_ORDEM.indexOf(b);
+    return (ia===-1?99:ia) - (ib===-1?99:ib);
+  });
+  document.getElementById('servicosGrid').innerHTML = chaves.map(cat => (
+    (chaves.length>1 ? '<h3 class="servicos-subtitulo">'+escapeHtml(SERVICO_CATEGORIA_LABEL[cat]||'Outros')+'</h3>' : '') +
+    '<div class="servicos-grid-interno">'+ grupos[cat].map(renderServicoCard).join('') +'</div>'
+  )).join('');
 }
 
 /* ---------- F. trabalhos concluídos (antes/depois) ---------- */
