@@ -23,6 +23,10 @@ manutenção de ar-condicionado **e serviços elétricos em geral**.
 - **Serviços agrupados por categoria** — cada serviço tem um campo `categoria`
   (`climatizacao` ou `eletrica`); o site mostra dois grupos com subtítulo ("Climatização" /
   "Elétrica em Geral") em vez de uma grade única, e o painel tem um seletor de categoria por linha.
+- **Selo de qualidade e banner de urgência (opcionais)** — dois campos de texto livre em "Dados da
+  empresa" (`seloQualidade`, `urgenciaTexto`). Cada um só aparece no site quando preenchido; vazio,
+  fica escondido automaticamente. Pensados pra reforçar confiança na parte elétrica (mais sensível a
+  segurança do que ar-condicionado) sem forçar informação que o dono ainda não tem pra dar.
 
 ## Estrutura
 
@@ -96,6 +100,22 @@ inclui armadilhas reais já resolvidas que se aplicam aqui também:
   (só dado de teste), foi seguro resetar. Se houvesse conteúdo real, o caminho certo seria renomear o
   arquivo (preservando os dados) e rodar uma migração (`ALTER TABLE ... ADD COLUMN categoria ...`) em
   vez de recriar o schema do zero.
+- **Campo novo numa tabela que já existe com dado real → sempre migração, nunca reset.** Foi o caso
+  do `seloQualidade`/`urgenciaTexto`: dessa vez a tabela `loja` já tinha a logo real aplicada, então
+  em vez de recriar o schema, `criarSchema()` roda um `ALTER TABLE loja ADD COLUMN ...` dentro de um
+  `try/catch` (ignora erro se a coluna já existe) toda vez que o servidor sobe. Funciona tanto pra
+  banco novo (a coluna já nasce na `CREATE TABLE`, o `ALTER` falha silenciosamente) quanto pra banco
+  antigo (a coluna é adicionada na hora). Esse padrão deve ser reaproveitado pra qualquer campo novo
+  daqui pra frente.
+- **Não inventar selo/certificação: perguntar o que o dono realmente tem.** Antes de escrever o texto
+  do "selo de qualidade", perguntei ao usuário qual credencial real ele possui (curso técnico, NR-10,
+  anos de experiência, garantia formal) em vez de supor. Ele tinha curso técnico + NR-10, então foi
+  isso que entrou no selo. Alegar uma certificação que o cliente não tem seria enganoso — e no ramo
+  elétrico, especificamente, pode ter implicação de segurança/responsabilidade real.
+- **Campo opcional "vazio por padrão, dono ativa quando quiser"**: a urgência elétrica foi implementada
+  mas deixada em branco de propósito, a pedido do usuário — ele mesmo decide quando (e se) vai
+  oferecer atendimento de urgência, então o valor por padrão nunca deve ser um texto genérico
+  inventado pra "preencher o espaço".
 
 ## Testado até agora
 - Site e painel rodados e navegados de verdade num navegador (Chromium via Playwright), várias vezes
@@ -105,13 +125,13 @@ inclui armadilhas reais já resolvidas que se aplicam aqui também:
   ponta, sem erros no console
 - Serviços agrupados por categoria (Climatização / Elétrica em Geral) testados no site e no painel,
   incluindo salvar a categoria de um serviço e confirmar que persiste após recarregar a página
-- Logo real aplicada e testada (upload real pro Cloudinary) — **pendente trocar pela nova logo** que
-  ainda será enviada, já que o nome da empresa mudou
+- Nova logo ("Marcos") aplicada pelo fluxo real do painel (upload → Cloudinary → site) e testada
+- Selo de qualidade testado (aparece na seção "Sobre" com o texto real do dono)
+- Banner de urgência testado nos dois estados: preenchido (aparece, com link de WhatsApp correto) e
+  vazio (fica escondido) — deixado vazio de propósito, o dono ativa quando quiser
 - Foto de fundo do hero aplicada e testada
 
 ## Não testado / próximos passos
-- Nova logo (nome mudou pra "Marcos") ainda não foi enviada — o badge com iniciais "MC" está sendo
-  usado como fallback enquanto isso
 - Conteúdo ainda é placeholder no resto — falta WhatsApp real, endereço real, fotos reais de trabalhos
   concluídos e achados de verdade
 - Turso, Render, domínio próprio: ainda não configurados — projeto só roda localmente até agora, sem
