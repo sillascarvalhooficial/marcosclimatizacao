@@ -116,6 +116,14 @@ inclui armadilhas reais já resolvidas que se aplicam aqui também:
   mas deixada em branco de propósito, a pedido do usuário — ele mesmo decide quando (e se) vai
   oferecer atendimento de urgência, então o valor por padrão nunca deve ser um texto genérico
   inventado pra "preencher o espaço".
+- **Altura fixa de logo no CSS não escala entre designs diferentes.** A logo nova tem 3 linhas de
+  texto empilhadas (nome + "Climatização" + "Elétrica em Geral"), mais alta proporcionalmente que a
+  logo anterior. Com a mesma `height` fixa no CSS (170px) que funcionava pra logo antiga, a nova
+  ficava com a largura resultante bem menor, sobrando um vão vazio grande no cabeçalho até o botão
+  do WhatsApp — o usuário chamou isso de "parece que está um buraco". Resolvido aumentando a altura
+  pra 210px (a largura acompanha, mesma proporção). Lição: ao trocar de logo, sempre conferir o
+  resultado visual completo do cabeçalho, não só se a imagem em si carregou certo — a altura ideal
+  depende da proporção específica de cada design.
 
 ## Testado até agora
 - Site e painel rodados e navegados de verdade num navegador (Chromium via Playwright), várias vezes
@@ -130,9 +138,15 @@ inclui armadilhas reais já resolvidas que se aplicam aqui também:
 - Banner de urgência testado nos dois estados: preenchido (aparece, com link de WhatsApp correto) e
   vazio (fica escondido) — deixado vazio de propósito, o dono ativa quando quiser
 - Foto de fundo do hero aplicada e testada
+- **Contato real preenchido**: WhatsApp/telefone `(44) 99980-6739` e Instagram
+  `@marcos_climatizacao022`, aplicados pelo painel e conferidos no cabeçalho, topo, seção de contato
+  e rodapé do site
+- **Dias de atendimento reais**: horário fixo (seg-sex + sáb) trocado por um único período
+  "Segunda a sábado, com agendamento", já que o atendimento passou a ser só por agendamento
 
 ## Não testado / próximos passos
-- Conteúdo ainda é placeholder no resto — falta WhatsApp real, endereço real, fotos reais de trabalhos
-  concluídos e achados de verdade
+- Fotos reais de trabalhos concluídos e achados ainda faltam (placeholder vazio)
+- Endereço/área de atendimento ainda é o texto genérico original ("Atendimento residencial e
+  comercial") — falta confirmar se o dono quer detalhar bairros/cidades
 - Turso, Render, domínio próprio: ainda não configurados — projeto só roda localmente até agora, sem
   repositório no GitHub ainda
