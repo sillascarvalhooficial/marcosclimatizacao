@@ -103,7 +103,8 @@ async function criarSchema() {
       instagram TEXT, facebook TEXT,
       corPrincipal TEXT, corSecundaria TEXT,
       endereco TEXT, linkMapa TEXT,
-      heroTexto TEXT, sobreTitulo TEXT, sobreTexto TEXT, fraseMuralVazio TEXT
+      heroTexto TEXT, sobreTitulo TEXT, sobreTexto TEXT, fraseMuralVazio TEXT,
+      seloQualidade TEXT, urgenciaTexto TEXT
     );
     CREATE TABLE IF NOT EXISTS horarios (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -137,6 +138,11 @@ async function criarSchema() {
       observacoes TEXT
     );
   `);
+
+  // migração pra bancos criados antes desses campos existirem
+  for (const col of ['seloQualidade TEXT', 'urgenciaTexto TEXT']) {
+    try { await db.execute(`ALTER TABLE loja ADD COLUMN ${col}`); } catch (_) { /* coluna já existe, ok ignorar */ }
+  }
 }
 
 /* ---------- seed inicial (só roda se o banco ainda não tem admin) ---------- */
@@ -150,14 +156,16 @@ async function seedInicial() {
   console.log('[admin-backend] Troque essa senha na primeira vez que entrar no painel.\n');
 
   await dbRun(`INSERT INTO loja (id, nome, slug, slogan, logo, whatsapp, whatsappExibicao, telefoneExibicao,
-    instagram, facebook, corPrincipal, corSecundaria, endereco, linkMapa, heroTexto, sobreTitulo, sobreTexto, fraseMuralVazio)
-    VALUES (1, ?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?,?,?)`, [
+    instagram, facebook, corPrincipal, corSecundaria, endereco, linkMapa, heroTexto, sobreTitulo, sobreTexto, fraseMuralVazio,
+    seloQualidade, urgenciaTexto)
+    VALUES (1, ?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?,?,?, ?,?)`, [
     'Marcos Climatização e Elétrica', 'marcos-climatizacao-eletrica', 'Climatização e elétrica em geral', '',
     '5500000000000', '(00) 00000-0000', '(00) 0000-0000',
     '@marcosclimatizacao', '', '#1E88E5', '#0B2545',
     'Atendimento residencial e comercial', '', '',
     'Sobre a Marcos Climatização e Elétrica', 'Trabalho técnico especializado em instalação e manutenção de ar-condicionado e serviços elétricos residenciais e comerciais, com qualidade, transparência e garantia em cada serviço.',
-    'Nenhum ar-condicionado usado disponível no momento... volte em breve!'
+    'Nenhum ar-condicionado usado disponível no momento... volte em breve!',
+    'Curso técnico e NR-10 — segurança em instalações elétricas', ''
   ]);
 
   const horariosSeed = [
@@ -211,7 +219,8 @@ async function lerAchados() {
 async function salvarLoja(campos) {
   const atual = await dbGet('SELECT * FROM loja WHERE id = 1');
   const colunas = ['nome', 'slug', 'slogan', 'logo', 'whatsapp', 'whatsappExibicao', 'telefoneExibicao', 'instagram', 'facebook',
-    'corPrincipal', 'corSecundaria', 'endereco', 'linkMapa', 'heroTexto', 'sobreTitulo', 'sobreTexto', 'fraseMuralVazio'];
+    'corPrincipal', 'corSecundaria', 'endereco', 'linkMapa', 'heroTexto', 'sobreTitulo', 'sobreTexto', 'fraseMuralVazio',
+    'seloQualidade', 'urgenciaTexto'];
   const novo = Object.assign({}, atual, campos);
   const valores = colunas.map(c => novo[c]);
   await dbRun(`UPDATE loja SET ${colunas.map(c => c + ' = ?').join(', ')} WHERE id = 1`, valores);

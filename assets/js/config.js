@@ -1,4 +1,4 @@
-/* Arquivo gerado automaticamente pelo painel admin em 27/09/2026, 17:16:16. Não edite manualmente. */
+/* Arquivo gerado automaticamente pelo painel admin em 27/09/2026, 17:30:22. Não edite manualmente. */
 
 const loja = {
   "id": 1,
@@ -19,6 +19,8 @@ const loja = {
   "sobreTitulo": "Sobre a Marcos Climatização e Elétrica",
   "sobreTexto": "Trabalho técnico especializado em instalação e manutenção de ar-condicionado e serviços elétricos residenciais e comerciais, com qualidade, transparência e garantia em cada serviço.",
   "fraseMuralVazio": "Nenhum ar-condicionado usado disponível no momento... volte em breve!",
+  "seloQualidade": "Curso técnico e NR-10 — segurança em instalações elétricas",
+  "urgenciaTexto": "",
   "horarios": [
     {
       "id": 1,

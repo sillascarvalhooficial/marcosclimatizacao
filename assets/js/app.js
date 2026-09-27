@@ -151,6 +151,25 @@ function renderAchados(){
 function renderSobre(){
   if(loja.sobreTitulo) document.getElementById('sobreTitulo').textContent = loja.sobreTitulo;
   if(loja.sobreTexto) document.getElementById('sobreTexto').textContent = loja.sobreTexto;
+  const selo = document.getElementById('seloQualidade');
+  if(loja.seloQualidade){
+    document.getElementById('seloTexto').textContent = loja.seloQualidade;
+    selo.hidden = false;
+  } else {
+    selo.hidden = true;
+  }
+}
+
+/* ---------- A2. urgência (banner opcional) ---------- */
+function renderUrgencia(){
+  const banner = document.getElementById('urgenciaBanner');
+  if(loja.urgenciaTexto){
+    document.getElementById('urgenciaTextoEl').textContent = loja.urgenciaTexto;
+    document.getElementById('urgenciaWhatsLink').href = linkWhatsApp('Olá! Preciso de atendimento de urgência.');
+    banner.hidden = false;
+  } else {
+    banner.hidden = true;
+  }
 }
 
 /* ---------- I. contato ---------- */
@@ -213,6 +232,7 @@ document.addEventListener('keydown', function(e){
 function init(){
   aplicarTema();
   renderTopbar();
+  renderUrgencia();
   renderHeader();
   renderServicos();
   renderTrabalhos();

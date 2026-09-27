@@ -36,6 +36,8 @@ async function carregarLoja(){
   document.getElementById('lojaSobreTitulo').value = loja.sobreTitulo || '';
   document.getElementById('lojaSobreTexto').value = loja.sobreTexto || '';
   document.getElementById('lojaFraseMuralVazio').value = loja.fraseMuralVazio || '';
+  document.getElementById('lojaSeloQualidade').value = loja.seloQualidade || '';
+  document.getElementById('lojaUrgenciaTexto').value = loja.urgenciaTexto || '';
   document.getElementById('lojaLogoPreview').innerHTML = loja.logo ? '<img class="foto-preview" src="'+fotoSrc(loja.logo)+'">' : '❄️';
 }
 document.getElementById('lojaLogoInput').addEventListener('change', function(e){
@@ -61,7 +63,9 @@ document.getElementById('btnSalvarLoja').addEventListener('click', async functio
       heroTexto: document.getElementById('lojaHeroTexto').value.trim(),
       sobreTitulo: document.getElementById('lojaSobreTitulo').value.trim(),
       sobreTexto: document.getElementById('lojaSobreTexto').value.trim(),
-      fraseMuralVazio: document.getElementById('lojaFraseMuralVazio').value.trim()
+      fraseMuralVazio: document.getElementById('lojaFraseMuralVazio').value.trim(),
+      seloQualidade: document.getElementById('lojaSeloQualidade').value.trim(),
+      urgenciaTexto: document.getElementById('lojaUrgenciaTexto').value.trim()
     });
     mostrarMensagem('Dados da empresa salvos.');
     carregarLoja();

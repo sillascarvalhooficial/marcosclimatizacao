@@ -66,6 +66,12 @@ a{color:inherit; text-decoration:none;}
 .topbar-redes{display:flex; gap:10px;}
 .topbar-redes a{width:26px; height:26px; border-radius:50%; background:var(--cor-secundaria); color:#fff; display:flex; align-items:center; justify-content:center;}
 
+/* ---------- A2. URGÊNCIA (banner opcional) ---------- */
+.urgencia-banner{background:#F97316; color:#fff;}
+.urgencia-inner{display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; padding:9px 0; font-size:13px; font-weight:700; text-align:center;}
+.urgencia-inner a{color:#fff; text-decoration:underline; text-underline-offset:2px; white-space:nowrap;}
+.urgencia-inner a:hover{opacity:.85;}
+
 /* ---------- B. HEADER ---------- */
 .site-header{background:var(--cor-secundaria); padding:16px 0; border-bottom:1px solid rgba(255,255,255,.08);}
 .header-inner{display:flex; align-items:center; justify-content:space-between; gap:16px;}
@@ -168,6 +174,15 @@ a{color:inherit; text-decoration:none;}
 /* ---------- H. SOBRE ---------- */
 .sobre-conteudo{max-width:720px; margin:0 auto; text-align:center;}
 .sobre-conteudo p{color:var(--muted); font-size:14.5px; margin-top:14px;}
+.selo-qualidade{
+  display:inline-flex; align-items:center; gap:8px; margin-top:20px; padding:9px 18px; border-radius:999px;
+  background:rgba(var(--cor-principal-rgb),.1); border:1px solid rgba(var(--cor-principal-rgb),.3);
+  color:var(--cor-secundaria); font-size:13px; font-weight:700;
+}
+.selo-qualidade .selo-icone{
+  width:20px; height:20px; border-radius:50%; background:var(--cor-principal); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0;
+}
 
 /* ---------- I. CONTATO / INFO ---------- */
 .info-loja{background:var(--cor-secundaria); border-radius:var(--radius-lg); padding:32px 26px; color:#fff;}
