@@ -1,4 +1,4 @@
-/* Arquivo gerado automaticamente pelo painel admin em 27/09/2026, 15:46:42. Não edite manualmente. */
+/* Arquivo gerado automaticamente pelo painel admin em 27/09/2026, 15:59:34. Não edite manualmente. */
 
 const loja = {
   "id": 1,
@@ -18,6 +18,7 @@ const loja = {
   "heroTexto": "",
   "sobreTitulo": "Sobre a Marquinhos Climatização",
   "sobreTexto": "Trabalho técnico especializado em instalação, manutenção e higienização de ar-condicionado, com qualidade, transparência e garantia em cada serviço.",
+  "fraseMuralVazio": "Nenhum ar-condicionado usado disponível no momento... volte em breve!",
   "horarios": [
     {
       "id": 1,

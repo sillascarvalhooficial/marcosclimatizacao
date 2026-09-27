@@ -1,4 +1,5 @@
 function escapeHtml(str){ return String(str==null?'':str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function formatBRL(n){ return 'R$ ' + Number(n||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
 function fotoSrc(caminho){ if(!caminho) return ''; return (/^https?:\/\//.test(caminho) ? caminho : '/'+caminho) + '?t='+Date.now(); }
 
 function mostrarMensagem(texto, tipo){
@@ -34,6 +35,7 @@ async function carregarLoja(){
   document.getElementById('lojaHeroTexto').value = loja.heroTexto || '';
   document.getElementById('lojaSobreTitulo').value = loja.sobreTitulo || '';
   document.getElementById('lojaSobreTexto').value = loja.sobreTexto || '';
+  document.getElementById('lojaFraseMuralVazio').value = loja.fraseMuralVazio || '';
   document.getElementById('lojaLogoPreview').innerHTML = loja.logo ? '<img class="foto-preview" src="'+fotoSrc(loja.logo)+'">' : '❄️';
 }
 document.getElementById('lojaLogoInput').addEventListener('change', function(e){
@@ -58,7 +60,8 @@ document.getElementById('btnSalvarLoja').addEventListener('click', async functio
       endereco: document.getElementById('lojaEndereco').value.trim(),
       heroTexto: document.getElementById('lojaHeroTexto').value.trim(),
       sobreTitulo: document.getElementById('lojaSobreTitulo').value.trim(),
-      sobreTexto: document.getElementById('lojaSobreTexto').value.trim()
+      sobreTexto: document.getElementById('lojaSobreTexto').value.trim(),
+      fraseMuralVazio: document.getElementById('lojaFraseMuralVazio').value.trim()
     });
     mostrarMensagem('Dados da empresa salvos.');
     carregarLoja();
@@ -242,7 +245,71 @@ document.getElementById('btnNovoTrabalho').addEventListener('click', async funct
   mostrarMensagem('Item criado — adicione as fotos e salve.');
 });
 
-/* ---------- 5. agenda (privada) ---------- */
+/* ---------- 5. mural de achados ---------- */
+let achadosAtual = [];
+async function carregarAchados(){
+  achadosAtual = await api('GET', '/api/achados');
+  renderAchados();
+}
+function renderAchados(){
+  document.getElementById('listaAchados').innerHTML = achadosAtual.map(a => (
+    '<div class="card-item" data-id="'+a.id+'">' +
+      '<div class="card-item-topo">' +
+        '<div class="foto-wrap">' + (a.imagem ? '<img class="foto-preview" src="'+fotoSrc(a.imagem)+'">' : '<div class="foto-preview">❄️</div>') +
+          '<input type="file" class="foto-input campo-foto" accept="image/png,image/jpeg,image/webp"></div>' +
+        '<div class="card-item-campos">' +
+          '<input type="text" class="campo-nome" placeholder="Nome" value="'+escapeHtml(a.nome)+'">' +
+          '<input type="text" class="campo-categoria" placeholder="Categoria (ex: Split 12000 BTUs)" value="'+escapeHtml(a.categoria||'')+'">' +
+          '<div class="grid-2">' +
+            '<input type="number" step="0.01" class="campo-preco" placeholder="Preço" value="'+a.preco+'">' +
+            '<label class="switch" style="align-self:center;"><input type="checkbox" class="campo-ativo" '+(a.ativo?'checked':'')+'><span class="slider"></span></label>' +
+          '</div>' +
+          '<input type="text" class="campo-descricao" placeholder="Descrição curta" value="'+escapeHtml(a.descricao||'')+'">' +
+        '</div>' +
+      '</div>' +
+      '<div class="rodape-painel">' +
+        '<button class="icon-btn btn-salvar-achado" title="Salvar">💾</button>' +
+        '<button class="icon-btn btn-remover-achado" title="Remover">🗑️</button>' +
+      '</div>' +
+    '</div>'
+  )).join('') || '<p class="desc">Nenhum achado no momento.</p>';
+}
+document.getElementById('listaAchados').addEventListener('click', function(e){
+  const item = e.target.closest('.card-item'); if(!item) return;
+  const id = item.dataset.id;
+  if(e.target.classList.contains('btn-salvar-achado')){
+    api('PUT', '/api/achados/'+id, {
+      nome: item.querySelector('.campo-nome').value.trim(),
+      categoria: item.querySelector('.campo-categoria').value.trim(),
+      preco: Number(item.querySelector('.campo-preco').value) || 0,
+      descricao: item.querySelector('.campo-descricao').value.trim(),
+      ativo: item.querySelector('.campo-ativo').checked
+    }).then(()=>mostrarMensagem('Achado salvo.')).catch(err=>mostrarMensagem(err.message,'erro'));
+  }
+  if(e.target.classList.contains('btn-remover-achado')){
+    if(!confirm('Remover este achado?')) return;
+    api('DELETE', '/api/achados/'+id).then(()=>{ mostrarMensagem('Achado removido.'); carregarAchados(); }).catch(err=>mostrarMensagem(err.message,'erro'));
+  }
+});
+document.getElementById('listaAchados').addEventListener('change', function(e){
+  const item = e.target.closest('.card-item'); if(!item) return;
+  const id = item.dataset.id;
+  if(e.target.classList.contains('campo-foto') && e.target.files[0]){
+    const formData = new FormData();
+    formData.append('imagem', e.target.files[0]);
+    fetch('/api/achados/'+id+'/imagem', { method:'POST', body: formData })
+      .then(r => { if(r.status===401){ window.location.href='login.html'; return; } return r.json(); })
+      .then(d => { if(d && !d.ok && d.erro) throw new Error(d.erro); mostrarMensagem('Foto atualizada.'); carregarAchados(); })
+      .catch(err => mostrarMensagem(err.message, 'erro'));
+  }
+});
+document.getElementById('btnNovoAchado').addEventListener('click', async function(){
+  await api('POST', '/api/achados', { nome: 'Novo achado', descricao: '', categoria: '', preco: 0 });
+  await carregarAchados();
+  mostrarMensagem('Achado criado — edite os campos e salve.');
+});
+
+/* ---------- 6. agenda (privada) ---------- */
 let agendaCompromissos = [];
 let agendaMesAtual = new Date();
 agendaMesAtual.setDate(1);
@@ -432,6 +499,7 @@ document.getElementById('btnSair').addEventListener('click', async function(){
     await carregarHorarios();
     await carregarServicos();
     await carregarTrabalhos();
+    await carregarAchados();
     await carregarAgenda();
   }catch(err){
     console.error(err);

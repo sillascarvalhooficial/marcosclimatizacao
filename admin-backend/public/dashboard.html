@@ -51,6 +51,7 @@
     <div class="campo"><label>Texto de destaque no topo (hero)</label><textarea id="lojaHeroTexto" rows="2"></textarea></div>
     <div class="campo"><label>Título da seção "Sobre"</label><input type="text" id="lojaSobreTitulo"></div>
     <div class="campo"><label>Texto da seção "Sobre"</label><textarea id="lojaSobreTexto" rows="3"></textarea></div>
+    <div class="campo"><label>Frase exibida quando o Mural de Achados estiver vazio</label><textarea id="lojaFraseMuralVazio" rows="2"></textarea></div>
     <div class="rodape-painel">
       <button class="btn btn-primary" id="btnSalvarLoja" style="width:auto;">Salvar dados da empresa</button>
     </div>
@@ -89,9 +90,19 @@
     </div>
   </div>
 
-  <!-- 5. Agenda (privada) -->
+  <!-- 5. Mural de Achados -->
   <div class="painel">
-    <h2>5. Agenda 🔒</h2>
+    <h2>5. Achados</h2>
+    <p class="desc">Ar-condicionados usados de clientes intermediados pra venda. Se não houver nenhum ativo, o site mostra automaticamente a frase configurada na seção 1.</p>
+    <div id="listaAchados"></div>
+    <div class="rodape-painel">
+      <button class="btn btn-secundario" id="btnNovoAchado" style="width:auto;">+ Novo achado</button>
+    </div>
+  </div>
+
+  <!-- 6. Agenda (privada) -->
+  <div class="painel">
+    <h2>6. Agenda 🔒</h2>
     <p class="desc">Só você vê isso — não aparece no site público. Clique num dia pra ver ou adicionar compromissos.</p>
     <div class="agenda-topo">
       <div class="agenda-nav">
@@ -104,9 +115,9 @@
     <div class="agenda-mes-grid" id="agendaGrid"></div>
   </div>
 
-  <!-- 6. Trocar senha -->
+  <!-- 7. Trocar senha -->
   <div class="painel">
-    <h2>6. Trocar senha de acesso</h2>
+    <h2>7. Trocar senha de acesso</h2>
     <div class="grid-2">
       <div class="campo"><label>Senha atual</label><input type="password" id="senhaAtual"></div>
       <div class="campo"><label>Nova senha</label><input type="password" id="novaSenha"></div>

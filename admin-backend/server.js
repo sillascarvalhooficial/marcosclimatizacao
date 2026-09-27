@@ -103,7 +103,7 @@ async function criarSchema() {
       instagram TEXT, facebook TEXT,
       corPrincipal TEXT, corSecundaria TEXT,
       endereco TEXT, linkMapa TEXT,
-      heroTexto TEXT, sobreTitulo TEXT, sobreTexto TEXT
+      heroTexto TEXT, sobreTitulo TEXT, sobreTexto TEXT, fraseMuralVazio TEXT
     );
     CREATE TABLE IF NOT EXISTS horarios (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -120,6 +120,11 @@ async function criarSchema() {
       titulo TEXT NOT NULL, descricao TEXT,
       fotoAntes TEXT, fotoDepois TEXT,
       ativo INTEGER NOT NULL DEFAULT 1, ordem INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS achados (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome TEXT NOT NULL, descricao TEXT, categoria TEXT, preco REAL NOT NULL DEFAULT 0,
+      imagem TEXT, ativo INTEGER NOT NULL DEFAULT 1, ordem INTEGER NOT NULL
     );
     CREATE TABLE IF NOT EXISTS agenda (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -144,13 +149,14 @@ async function seedInicial() {
   console.log('[admin-backend] Troque essa senha na primeira vez que entrar no painel.\n');
 
   await dbRun(`INSERT INTO loja (id, nome, slug, slogan, logo, whatsapp, whatsappExibicao, telefoneExibicao,
-    instagram, facebook, corPrincipal, corSecundaria, endereco, linkMapa, heroTexto, sobreTitulo, sobreTexto)
-    VALUES (1, ?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?,?)`, [
+    instagram, facebook, corPrincipal, corSecundaria, endereco, linkMapa, heroTexto, sobreTitulo, sobreTexto, fraseMuralVazio)
+    VALUES (1, ?,?,?,?,?,?,?, ?,?,?,?,?,?,?,?,?,?)`, [
     'Marquinhos Climatização', 'marquinhos-climatizacao', 'Instalação e manutenção de ar-condicionado', '',
     '5500000000000', '(00) 00000-0000', '(00) 0000-0000',
     '@marquinhosclimatizacao', '', '#1E88E5', '#0B2545',
     'Atendimento residencial e comercial', '', '',
-    'Sobre a Marquinhos Climatização', 'Trabalho técnico especializado em instalação, manutenção e higienização de ar-condicionado, com qualidade, transparência e garantia em cada serviço.'
+    'Sobre a Marquinhos Climatização', 'Trabalho técnico especializado em instalação, manutenção e higienização de ar-condicionado, com qualidade, transparência e garantia em cada serviço.',
+    'Nenhum ar-condicionado usado disponível no momento... volte em breve!'
   ]);
 
   const horariosSeed = [
@@ -192,11 +198,15 @@ async function lerTrabalhos() {
   const rows = await dbAll('SELECT * FROM trabalhos ORDER BY ordem ASC');
   return rows.map(a => Object.assign({}, a, { ativo: !!a.ativo }));
 }
+async function lerAchados() {
+  const rows = await dbAll('SELECT * FROM achados ORDER BY ordem ASC');
+  return rows.map(a => Object.assign({}, a, { ativo: !!a.ativo }));
+}
 
 async function salvarLoja(campos) {
   const atual = await dbGet('SELECT * FROM loja WHERE id = 1');
   const colunas = ['nome', 'slug', 'slogan', 'logo', 'whatsapp', 'whatsappExibicao', 'telefoneExibicao', 'instagram', 'facebook',
-    'corPrincipal', 'corSecundaria', 'endereco', 'linkMapa', 'heroTexto', 'sobreTitulo', 'sobreTexto'];
+    'corPrincipal', 'corSecundaria', 'endereco', 'linkMapa', 'heroTexto', 'sobreTitulo', 'sobreTexto', 'fraseMuralVazio'];
   const novo = Object.assign({}, atual, campos);
   const valores = colunas.map(c => novo[c]);
   await dbRun(`UPDATE loja SET ${colunas.map(c => c + ' = ?').join(', ')} WHERE id = 1`, valores);
@@ -221,6 +231,12 @@ async function regenerarTrabalhosJs() {
     '/* Arquivo gerado automaticamente pelo painel admin em ' + new Date().toLocaleString('pt-BR') + '. Não edite manualmente. */\n\n' +
     'const trabalhos = ' + JSON.stringify(await lerTrabalhos(), null, 2) + ';\n';
   fs.writeFileSync(path.join(ASSETS_JS_DIR, 'trabalhos.js'), conteudo);
+}
+async function regenerarAchadosJs() {
+  const conteudo =
+    '/* Arquivo gerado automaticamente pelo painel admin em ' + new Date().toLocaleString('pt-BR') + '. Não edite manualmente. */\n\n' +
+    'const achados = ' + JSON.stringify(await lerAchados(), null, 2) + ';\n';
+  fs.writeFileSync(path.join(ASSETS_JS_DIR, 'achados.js'), conteudo);
 }
 
 /* ---------- app ---------- */
@@ -425,6 +441,56 @@ app.post('/api/trabalhos/:id/foto/:tipo', requireAuth, (req, res) => {
   });
 });
 
+/* ---------- mural de achados ---------- */
+app.get('/api/achados', requireAuth, asyncHandler(async (req, res) => res.json(await lerAchados())));
+app.post('/api/achados', requireAuth, asyncHandler(async (req, res) => {
+  const maxRow = await dbGet('SELECT COALESCE(MAX(ordem), -1) AS m FROM achados');
+  const c = req.body || {};
+  await dbRun('INSERT INTO achados (nome, descricao, categoria, preco, imagem, ativo, ordem) VALUES (?,?,?,?,?,1,?)', [
+    (c.nome || 'Novo achado').trim(), (c.descricao || '').trim(), (c.categoria || '').trim(), c.preco || 0, '', maxRow.m + 1
+  ]);
+  await regenerarAchadosJs();
+  res.json({ ok: true, itens: await lerAchados() });
+}));
+app.put('/api/achados/:id', requireAuth, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const atual = await dbGet('SELECT * FROM achados WHERE id = ?', [id]);
+  if (!atual) return res.status(404).json({ erro: 'Achado não encontrado.' });
+  const c = req.body || {};
+  await dbRun('UPDATE achados SET nome=?, descricao=?, categoria=?, preco=?, ativo=? WHERE id=?', [
+    c.nome != null ? c.nome : atual.nome, c.descricao != null ? c.descricao : atual.descricao,
+    c.categoria != null ? c.categoria : atual.categoria, c.preco != null ? c.preco : atual.preco,
+    c.ativo != null ? (c.ativo ? 1 : 0) : atual.ativo, id
+  ]);
+  await regenerarAchadosJs();
+  res.json({ ok: true });
+}));
+app.delete('/api/achados/:id', requireAuth, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const atual = await dbGet('SELECT * FROM achados WHERE id = ?', [id]);
+  if (!atual) return res.status(404).json({ erro: 'Achado não encontrado.' });
+  await apagarImagemCloudinary(`marquinhos-climatizacao/achados/achado-${id}`);
+  await dbRun('DELETE FROM achados WHERE id = ?', [id]);
+  await regenerarAchadosJs();
+  res.json({ ok: true });
+}));
+app.post('/api/achados/:id/imagem', requireAuth, (req, res) => {
+  uploadMem.single('imagem')(req, res, async (erro) => {
+    if (erro) return res.status(400).json({ erro: erro.message || 'Falha no upload.' });
+    if (!req.file) return res.status(400).json({ erro: 'Nenhum arquivo enviado.' });
+    if (!CLOUDINARY_CONFIGURADO) return res.status(500).json({ erro: 'Upload de imagens não configurado no servidor (faltam as credenciais do Cloudinary).' });
+    try {
+      const id = Number(req.params.id);
+      const atual = await dbGet('SELECT * FROM achados WHERE id = ?', [id]);
+      if (!atual) return res.status(404).json({ erro: 'Achado não encontrado.' });
+      const resultado = await uploadParaCloudinary(req.file.buffer, `marquinhos-climatizacao/achados/achado-${id}`);
+      await dbRun('UPDATE achados SET imagem = ? WHERE id = ?', [resultado.secure_url, id]);
+      await regenerarAchadosJs();
+      res.json({ ok: true, imagem: resultado.secure_url });
+    } catch (e) { res.status(500).json({ erro: 'Falha ao enviar imagem: ' + e.message }); }
+  });
+});
+
 /* ---------- agenda (área privada, só o painel — não aparece no site público) ---------- */
 app.get('/api/agenda', requireAuth, asyncHandler(async (req, res) => {
   const rows = await dbAll('SELECT * FROM agenda ORDER BY data ASC, horario ASC');
@@ -480,6 +546,7 @@ async function iniciar() {
   await regenerarConfigJs();
   await regenerarServicosJs();
   await regenerarTrabalhosJs();
+  await regenerarAchadosJs();
 
   app.listen(PORTA, () => {
     console.log('[admin-backend] Site publicado em http://localhost:' + PORTA + '/');

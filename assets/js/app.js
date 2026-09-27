@@ -5,6 +5,7 @@
    ========================================================================== */
 
 /* ---------- helpers ---------- */
+function formatBRL(n){ return 'R$ ' + Number(n||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
 function escapeHtml(str){ return String(str==null?'':str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function initials(nome){ return nome.trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
 function hexToRgb(hex){
@@ -97,6 +98,36 @@ function renderTrabalhos(){
   )).join('');
 }
 
+/* ---------- G. mural de achados ---------- */
+function renderAchados(){
+  const ativos = achados.filter(a=>a.ativo).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+  const container = document.getElementById('achadosConteudo');
+  if(ativos.length===0){
+    container.innerHTML =
+      '<div class="mural-vazio">'+
+        '<div class="mural-vazio-icone">🔎</div>'+
+        '<h3>Nada por aqui ainda</h3>'+
+        '<p>'+escapeHtml(loja.fraseMuralVazio || 'Nenhum ar-condicionado usado disponível no momento... volte em breve!')+'</p>'+
+      '</div>';
+    return;
+  }
+  container.innerHTML = '<div class="achados-grid">' + ativos.map(a=>{
+    const linkItem = linkWhatsApp('Olá! Vi o "'+a.nome+'" nos Achados e quero saber mais.');
+    return (
+      '<div class="achado-card">'+
+        '<div class="achado-tile">'+(a.imagem?'<img src="'+a.imagem+'" alt="'+escapeHtml(a.nome)+'">':'❄️')+'</div>'+
+        '<div class="achado-corpo">'+
+          (a.categoria?'<div class="achado-categoria">'+escapeHtml(a.categoria)+'</div>':'')+
+          '<div class="achado-nome">'+escapeHtml(a.nome)+'</div>'+
+          (a.descricao?'<div class="achado-desc">'+escapeHtml(a.descricao)+'</div>':'')+
+          '<div class="achado-preco">'+formatBRL(a.preco)+'</div>'+
+          '<a class="achado-cta" href="'+linkItem+'" target="_blank" rel="noopener">Falar sobre esse</a>'+
+        '</div>'+
+      '</div>'
+    );
+  }).join('') + '</div>';
+}
+
 /* ---------- H. sobre ---------- */
 function renderSobre(){
   if(loja.sobreTitulo) document.getElementById('sobreTitulo').textContent = loja.sobreTitulo;
@@ -166,6 +197,7 @@ function init(){
   renderHeader();
   renderServicos();
   renderTrabalhos();
+  renderAchados();
   renderSobre();
   renderContato();
   renderRodape();
