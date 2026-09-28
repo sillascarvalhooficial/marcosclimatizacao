@@ -543,6 +543,8 @@ app.delete('/api/agenda/:id', requireAuth, asyncHandler(async (req, res) => {
 app.get('/', (req, res) => res.sendFile(INDEX_HTML));
 app.use('/assets', express.static(ASSETS_DIR));
 app.get('/googlea5b078852e53143b.html', (req, res) => res.sendFile(path.join(PROJECT_ROOT, 'googlea5b078852e53143b.html')));
+app.get('/robots.txt', (req, res) => res.sendFile(path.join(PROJECT_ROOT, 'robots.txt')));
+app.get('/sitemap.xml', (req, res) => res.sendFile(path.join(PROJECT_ROOT, 'sitemap.xml')));
 
 /* ---------- painel do dono ---------- */
 app.get('/admin', (req, res) => res.redirect('/admin/dashboard.html'));
