@@ -87,6 +87,10 @@ Projeto publicado seguindo o mesmo playbook do Queiroz Hats. Site, painel, banco
 - Login testado em produção (sessão persistindo atrás do proxy do Render, graças ao `trust proxy`
   configurado desde o início)
 - UptimeRobot configurado (monitor HTTP/S a cada 5 min em `https://mhclima.com.br`)
+- **Google Search Console verificado**, com `robots.txt` e `sitemap.xml` (rotas explícitas, mesmo
+  padrão do arquivo de verificação — nunca `express.static` na raiz) e indexação da home solicitada
+  manualmente via "Inspeção de URL" (acelera a página aparecer nas buscas, em vez de esperar o
+  rastreamento espontâneo do Google)
 
 ## Como publicar de graça (mesmo passo a passo do projeto anterior)
 
