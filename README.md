@@ -69,6 +69,25 @@ Atualmente reaproveitando a **mesma conta Cloudinary** do projeto Queiroz Hats (
 `marcos-climatizacao/` dentro dela) — funciona bem pros dois enquanto o volume for pequeno, mas dá
 pra separar numa conta própria depois só trocando 3 linhas no `.env` (ver `.env.example`).
 
+Domínio comprado inicialmente foi diferente do planejado no meio da entrega (`marcosclimatizacao.com.br`
+→ `mhclima.com.br`, decisão do dono) — sem problema, o processo de apontar domínio no Render/registro.br
+é o mesmo independente do nome escolhido.
+
+## Status (2026-09-28) — publicado e em produção
+
+Projeto publicado seguindo o mesmo playbook do Queiroz Hats. Site, painel, banco (Turso), imagens
+(Cloudinary) e domínio próprio testados de ponta a ponta em produção, não só localmente.
+
+- Site no ar: **https://mhclima.com.br** (também responde em `https://www.mhclima.com.br` e em
+  `https://marcosclimatizacao.onrender.com`)
+- Repositório: `github.com/sillascarvalhooficial/marcosclimatizacao`
+- Banco: Turso (`marcos-climatizacao.aws-us-east-1.turso.io`), com os dados reais que já existiam no
+  banco local (logo, WhatsApp, Instagram, selo de qualidade, horário) migrados — não foi um reseed do
+  zero, ver lição abaixo
+- Login testado em produção (sessão persistindo atrás do proxy do Render, graças ao `trust proxy`
+  configurado desde o início)
+- UptimeRobot configurado (monitor HTTP/S a cada 5 min em `https://mhclima.com.br`)
+
 ## Como publicar de graça (mesmo passo a passo do projeto anterior)
 
 Ver o README do projeto **Ateliê do Chapéu / Queiroz Hats** (seção "Como publicar de graça" e "Lições
@@ -124,6 +143,27 @@ inclui armadilhas reais já resolvidas que se aplicam aqui também:
   pra 210px (a largura acompanha, mesma proporção). Lição: ao trocar de logo, sempre conferir o
   resultado visual completo do cabeçalho, não só se a imagem em si carregou certo — a altura ideal
   depende da proporção específica de cada design.
+- **Banco local com dado real → migrar pro Turso, nunca deixar `seedInicial()` rodar de novo lá.**
+  Diferente do Queiroz Hats (que começou com Turso desde o início, tudo placeholder), este projeto já
+  tinha logo, WhatsApp, Instagram, selo de qualidade e horário reais no banco local quando chegou a
+  hora de publicar. Simplesmente configurar `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` e subir pro Render
+  teria disparado `seedInicial()` (que só roda se não existir admin) num banco Turso vazio, recriando
+  tudo com os valores de placeholder do seed e perdendo o conteúdo real. Fix: um script avulso de
+  migração (rodado uma vez, localmente, não commitado) que conecta nos dois bancos via
+  `@libsql/client` — um apontando pro arquivo local, outro pro Turso — roda o mesmo `CREATE TABLE`
+  no destino e copia linha por linha (`SELECT *` na origem → `INSERT` no destino, preservando os IDs)
+  de todas as tabelas. Confirmado com uma leitura de conferência no banco Turso antes de considerar a
+  migração concluída.
+- **Domínio pode mudar de nome no meio do processo — sem problema, mas confirmar antes de configurar
+  DNS.** O usuário tinha mostrado `marcosclimatizacao.com.br` antes, mas o domínio realmente comprado
+  foi `mhclima.com.br`. O processo de apontar (Render "Add Custom Domain" → registros A/CNAME →
+  registro.br) é idêntico independente do nome; só vale sempre confirmar qual domínio foi comprado de
+  fato antes de gerar as instruções de DNS.
+- **Depois de configurar DNS, o certificado HTTPS é um passo separado que também leva um tempo.**
+  Mesmo com o DNS já propagado e confirmado via Cloudflare DoH, o domínio ainda respondeu erro de TLS
+  (`schannel: SEC_E_ILLEGAL_MESSAGE` / handshake falho) por alguns minutos — o Render precisa detectar
+  o DNS correto e emitir o certificado Let's Encrypt antes do HTTPS funcionar. Não é motivo de
+  preocupação, só esperar mais um pouco e testar de novo.
 
 ## Testado até agora
 - Site e painel rodados e navegados de verdade num navegador (Chromium via Playwright), várias vezes
@@ -148,5 +188,5 @@ inclui armadilhas reais já resolvidas que se aplicam aqui também:
 - Fotos reais de trabalhos concluídos e achados ainda faltam (placeholder vazio)
 - Endereço/área de atendimento ainda é o texto genérico original ("Atendimento residencial e
   comercial") — falta confirmar se o dono quer detalhar bairros/cidades
-- Turso, Render, domínio próprio: ainda não configurados — projeto só roda localmente até agora, sem
-  repositório no GitHub ainda
+- FAQ e depoimentos (sugestões de melhoria dadas ao usuário) ficaram pra depois, ainda não
+  implementados
