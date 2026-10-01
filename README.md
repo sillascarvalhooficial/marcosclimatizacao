@@ -65,6 +65,11 @@ Requer **Node.js 18+**. Sem nenhuma variável de banco/imagem configurada no `.e
 - Site: `http://localhost:5800/`
 - Painel: `http://localhost:5800/admin` (login: `admin` / senha em `ADMIN_PASS` no `.env`)
 
+**"Esqueci minha senha" (2026-10-01):** a tela de login tem um link que redefine a senha do painel sem
+precisar da senha atual, usando a `MASTER_RESET_PASSWORD` do `.env` (mesma senha mestre em todos os
+projetos — só o Sillas sabe). Serve pra quando o cliente esquece a senha dele. **Lembrar de configurar
+`MASTER_RESET_PASSWORD` também nas variáveis de ambiente do Render**, senão o reset falha em produção.
+
 Atualmente reaproveitando a **mesma conta Cloudinary** do projeto Queiroz Hats (pasta separada
 `marcos-climatizacao/` dentro dela) — funciona bem pros dois enquanto o volume for pequeno, mas dá
 pra separar numa conta própria depois só trocando 3 linhas no `.env` (ver `.env.example`).
