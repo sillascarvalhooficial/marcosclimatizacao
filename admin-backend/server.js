@@ -129,6 +129,11 @@ async function criarSchema() {
       nome TEXT NOT NULL, descricao TEXT, categoria TEXT, preco REAL NOT NULL DEFAULT 0,
       imagem TEXT, ativo INTEGER NOT NULL DEFAULT 1, ordem INTEGER NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS promocoes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      titulo TEXT NOT NULL, imagem TEXT,
+      ativo INTEGER NOT NULL DEFAULT 1, ordem INTEGER NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS agenda (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       data TEXT NOT NULL,
@@ -217,6 +222,10 @@ async function lerAchados() {
   const rows = await dbAll('SELECT * FROM achados ORDER BY ordem ASC');
   return rows.map(a => Object.assign({}, a, { ativo: !!a.ativo }));
 }
+async function lerPromocoes() {
+  const rows = await dbAll('SELECT * FROM promocoes ORDER BY ordem ASC');
+  return rows.map(p => Object.assign({}, p, { ativo: !!p.ativo }));
+}
 
 async function salvarLoja(campos) {
   const atual = await dbGet('SELECT * FROM loja WHERE id = 1');
@@ -253,6 +262,12 @@ async function regenerarAchadosJs() {
     '/* Arquivo gerado automaticamente pelo painel admin em ' + new Date().toLocaleString('pt-BR') + '. Não edite manualmente. */\n\n' +
     'const achados = ' + JSON.stringify(await lerAchados(), null, 2) + ';\n';
   fs.writeFileSync(path.join(ASSETS_JS_DIR, 'achados.js'), conteudo);
+}
+async function regenerarPromocoesJs() {
+  const conteudo =
+    '/* Arquivo gerado automaticamente pelo painel admin em ' + new Date().toLocaleString('pt-BR') + '. Não edite manualmente. */\n\n' +
+    'const promocoes = ' + JSON.stringify(await lerPromocoes(), null, 2) + ';\n';
+  fs.writeFileSync(path.join(ASSETS_JS_DIR, 'promocoes.js'), conteudo);
 }
 
 /* ---------- app ---------- */
@@ -548,6 +563,55 @@ app.post('/api/achados/:id/imagem', requireAuth, (req, res) => {
   });
 });
 
+/* ---------- promoções — só uma foto (o card já vem com tudo escrito nela, sem preço) ---------- */
+app.get('/api/promocoes', requireAuth, asyncHandler(async (req, res) => res.json(await lerPromocoes())));
+app.post('/api/promocoes', requireAuth, asyncHandler(async (req, res) => {
+  const maxRow = await dbGet('SELECT COALESCE(MAX(ordem), -1) AS m FROM promocoes');
+  const c = req.body || {};
+  await dbRun('INSERT INTO promocoes (titulo, imagem, ativo, ordem) VALUES (?,?,1,?)', [
+    (c.titulo || 'Nova promoção').trim(), '', maxRow.m + 1
+  ]);
+  await regenerarPromocoesJs();
+  res.json({ ok: true, itens: await lerPromocoes() });
+}));
+app.put('/api/promocoes/:id', requireAuth, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const atual = await dbGet('SELECT * FROM promocoes WHERE id = ?', [id]);
+  if (!atual) return res.status(404).json({ erro: 'Promoção não encontrada.' });
+  const c = req.body || {};
+  await dbRun('UPDATE promocoes SET titulo=?, ativo=? WHERE id=?', [
+    c.titulo != null ? c.titulo : atual.titulo,
+    c.ativo != null ? (c.ativo ? 1 : 0) : atual.ativo, id
+  ]);
+  await regenerarPromocoesJs();
+  res.json({ ok: true });
+}));
+app.delete('/api/promocoes/:id', requireAuth, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const atual = await dbGet('SELECT * FROM promocoes WHERE id = ?', [id]);
+  if (!atual) return res.status(404).json({ erro: 'Promoção não encontrada.' });
+  await apagarImagemCloudinary(`marcos-climatizacao/promocoes/promocao-${id}`);
+  await dbRun('DELETE FROM promocoes WHERE id = ?', [id]);
+  await regenerarPromocoesJs();
+  res.json({ ok: true });
+}));
+app.post('/api/promocoes/:id/imagem', requireAuth, (req, res) => {
+  uploadMem.single('imagem')(req, res, async (erro) => {
+    if (erro) return res.status(400).json({ erro: erro.message || 'Falha no upload.' });
+    if (!req.file) return res.status(400).json({ erro: 'Nenhum arquivo enviado.' });
+    if (!CLOUDINARY_CONFIGURADO) return res.status(500).json({ erro: 'Upload de imagens não configurado no servidor (faltam as credenciais do Cloudinary).' });
+    try {
+      const id = Number(req.params.id);
+      const atual = await dbGet('SELECT * FROM promocoes WHERE id = ?', [id]);
+      if (!atual) return res.status(404).json({ erro: 'Promoção não encontrada.' });
+      const resultado = await uploadParaCloudinary(req.file.buffer, `marcos-climatizacao/promocoes/promocao-${id}`);
+      await dbRun('UPDATE promocoes SET imagem = ? WHERE id = ?', [resultado.secure_url, id]);
+      await regenerarPromocoesJs();
+      res.json({ ok: true, imagem: resultado.secure_url });
+    } catch (e) { res.status(500).json({ erro: 'Falha ao enviar imagem: ' + e.message }); }
+  });
+});
+
 /* ---------- agenda (área privada, só o painel — não aparece no site público) ---------- */
 app.get('/api/agenda', requireAuth, asyncHandler(async (req, res) => {
   const rows = await dbAll('SELECT * FROM agenda ORDER BY data ASC, horario ASC');
@@ -607,6 +671,7 @@ async function iniciar() {
   await regenerarServicosJs();
   await regenerarTrabalhosJs();
   await regenerarAchadosJs();
+  await regenerarPromocoesJs();
 
   app.listen(PORTA, () => {
     console.log('[admin-backend] Site publicado em http://localhost:' + PORTA + '/');

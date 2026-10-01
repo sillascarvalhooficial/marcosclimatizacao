@@ -140,6 +140,15 @@ a{color:inherit; text-decoration:none;}
 .servico-card h3{font-size:16px;}
 .servico-card p{font-size:13px; color:var(--muted); margin-top:8px;}
 
+/* ---------- E2. PROMOÇÕES (só a foto, sem preço — o card já vem pronto) ---------- */
+.promocoes-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px;}
+.promocao-card{
+  display:block; border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-sm);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.promocao-card:hover{transform:translateY(-3px); box-shadow:var(--shadow-md);}
+.promocao-card img{width:100%; height:auto; display:block;}
+
 /* ---------- F. TRABALHOS CONCLUÍDOS (antes/depois) ---------- */
 .ad-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px;}
 .ad-card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-sm);}

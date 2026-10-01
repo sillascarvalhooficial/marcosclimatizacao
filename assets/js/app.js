@@ -117,6 +117,22 @@ function renderTrabalhos(){
   )).join('');
 }
 
+/* ---------- F2. promoções (só foto — o card já vem pronto, sem preço) ---------- */
+function renderPromocoes(){
+  const ativos = promocoes.filter(p=>p.ativo).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+  const secao = document.getElementById('promocoes');
+  if(ativos.length===0){ secao.hidden = true; return; }
+  secao.hidden = false;
+  document.getElementById('promocoesGrid').innerHTML = ativos.map(p=>{
+    const linkItem = linkWhatsApp('Olá! Vi a promoção "'+p.titulo+'" e quero saber mais.');
+    return (
+      '<a class="promocao-card" href="'+linkItem+'" target="_blank" rel="noopener">'+
+        (p.imagem?'<img src="'+p.imagem+'" alt="'+escapeHtml(p.titulo)+'">':'')+
+      '</a>'
+    );
+  }).join('');
+}
+
 /* ---------- G. mural de achados ---------- */
 function renderAchados(){
   const ativos = achados.filter(a=>a.ativo).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
@@ -235,6 +251,7 @@ function init(){
   renderUrgencia();
   renderHeader();
   renderServicos();
+  renderPromocoes();
   renderTrabalhos();
   renderAchados();
   renderSobre();

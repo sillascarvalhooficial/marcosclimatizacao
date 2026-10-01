@@ -318,6 +318,62 @@ document.getElementById('btnNovoAchado').addEventListener('click', async functio
   mostrarMensagem('Achado criado — edite os campos e salve.');
 });
 
+/* ---------- 4. promoções ---------- */
+let promocoesAtual = [];
+async function carregarPromocoes(){
+  promocoesAtual = await api('GET', '/api/promocoes');
+  renderPromocoes();
+}
+function renderPromocoes(){
+  document.getElementById('listaPromocoes').innerHTML = promocoesAtual.map(p => (
+    '<div class="card-item" data-id="'+p.id+'">' +
+      '<div class="card-item-topo">' +
+        '<div class="foto-wrap">' + (p.imagem ? '<img class="foto-preview" src="'+fotoSrc(p.imagem)+'">' : '<div class="foto-preview">📣</div>') +
+          '<input type="file" class="foto-input campo-foto" accept="image/png,image/jpeg,image/webp"></div>' +
+        '<div class="card-item-campos">' +
+          '<input type="text" class="campo-titulo" placeholder="Título (só pra você identificar — não aparece no site)" value="'+escapeHtml(p.titulo)+'">' +
+          '<label class="switch" style="align-self:center;"><input type="checkbox" class="campo-ativo" '+(p.ativo?'checked':'')+'><span class="slider"></span></label>' +
+        '</div>' +
+      '</div>' +
+      '<div class="rodape-painel">' +
+        '<button class="icon-btn btn-salvar-promocao" title="Salvar">💾</button>' +
+        '<button class="icon-btn btn-remover-promocao" title="Remover">🗑️</button>' +
+      '</div>' +
+    '</div>'
+  )).join('') || '<p class="desc">Nenhuma promoção no momento.</p>';
+}
+document.getElementById('listaPromocoes').addEventListener('click', function(e){
+  const item = e.target.closest('.card-item'); if(!item) return;
+  const id = item.dataset.id;
+  if(e.target.classList.contains('btn-salvar-promocao')){
+    api('PUT', '/api/promocoes/'+id, {
+      titulo: item.querySelector('.campo-titulo').value.trim(),
+      ativo: item.querySelector('.campo-ativo').checked
+    }).then(()=>mostrarMensagem('Promoção salva.')).catch(err=>mostrarMensagem(err.message,'erro'));
+  }
+  if(e.target.classList.contains('btn-remover-promocao')){
+    if(!confirm('Remover esta promoção?')) return;
+    api('DELETE', '/api/promocoes/'+id).then(()=>{ mostrarMensagem('Promoção removida.'); carregarPromocoes(); }).catch(err=>mostrarMensagem(err.message,'erro'));
+  }
+});
+document.getElementById('listaPromocoes').addEventListener('change', function(e){
+  const item = e.target.closest('.card-item'); if(!item) return;
+  const id = item.dataset.id;
+  if(e.target.classList.contains('campo-foto') && e.target.files[0]){
+    const formData = new FormData();
+    formData.append('imagem', e.target.files[0]);
+    fetch('/api/promocoes/'+id+'/imagem', { method:'POST', body: formData })
+      .then(r => { if(r.status===401){ window.location.href='login.html'; return; } return r.json(); })
+      .then(d => { if(d && !d.ok && d.erro) throw new Error(d.erro); mostrarMensagem('Foto atualizada.'); carregarPromocoes(); })
+      .catch(err => mostrarMensagem(err.message, 'erro'));
+  }
+});
+document.getElementById('btnNovaPromocao').addEventListener('click', async function(){
+  await api('POST', '/api/promocoes', { titulo: 'Nova promoção' });
+  await carregarPromocoes();
+  mostrarMensagem('Promoção criada — suba a foto e salve.');
+});
+
 /* ---------- 6. agenda (privada) ---------- */
 let agendaCompromissos = [];
 let agendaMesAtual = new Date();
@@ -507,6 +563,7 @@ document.getElementById('btnSair').addEventListener('click', async function(){
     await carregarLoja();
     await carregarHorarios();
     await carregarServicos();
+    await carregarPromocoes();
     await carregarTrabalhos();
     await carregarAchados();
     await carregarAgenda();
